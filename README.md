@@ -16,3 +16,9 @@ These notes record AI-generated partial results. The convergence question remain
 - [Proofs of the asymptotic bounds](bounds.md)
 - [Convergence criterion](convergence.md)
 - [Exact limit for the semidefinite relaxation](relaxation.md)
+
+## Lean formalization
+
+[Ivanisvili.lean](Ivanisvili.lean) defines the exact normalized sequence and the
+proposition `Ivanisvili.LimitExists`. It also proves that the unnormalized
+minimum is nondecreasing. Run `lake build` with Elan installed to check it.
