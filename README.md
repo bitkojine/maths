@@ -23,3 +23,4 @@ These notes record AI-generated partial results. The convergence question remain
 proposition `Ivanisvili.LimitExists`. It also proves that the unnormalized
 minimum is nondecreasing. It also proves convergence from any convergent
 subsequence whose successive size ratios tend to one. Run `lake build` with Elan installed to check it.
+- [Obstruction to scaling an optimal signing by Hadamard tensors](tensor-obstruction.md)
