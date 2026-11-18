@@ -158,4 +158,49 @@ theorem tendsto_normalized_of_brackets (lo hi : ℕ → ℕ) {L : ℝ}
     exact div_le_div_of_nonneg_right (minimum_monotone h.2.2)
       (Real.rpow_nonneg (Nat.cast_nonneg n) _)
 
+/-- An increasing subsequence whose successive size ratios approach one
+determines the limit whenever its normalized values converge. -/
+theorem tendsto_normalized_of_subsequence (u : ℕ → ℕ) (hu : StrictMono u) {L : ℝ}
+    (hvalue : Tendsto (fun k => normalized (u k)) atTop (nhds L))
+    (hratio : Tendsto (fun k => (u (k + 1) : ℝ) / (u k : ℝ)) atTop (nhds 1)) :
+    Tendsto normalized atTop (nhds L) := by
+  have hfind (n : ℕ) : ∃ k : ℕ, n < u (k + 1) :=
+    ⟨n, n.lt_succ_self.trans_le (hu.id_le (n + 1))⟩
+  let index (n : ℕ) := Nat.find (hfind n)
+  have hupper (n : ℕ) : n < u (index n + 1) := Nat.find_spec (hfind n)
+  have hlower (n : ℕ) (hn : u 0 ≤ n) : u (index n) ≤ n := by
+    cases h : index n with
+    | zero => simpa only [h] using hn
+    | succ k =>
+      have hk : k < index n := by rw [h]; exact k.lt_succ_self
+      exact not_lt.mp (Nat.find_min (hfind n) hk)
+  have hindex : Tendsto index atTop atTop := by
+    refine tendsto_atTop.2 (fun k => ?_)
+    filter_upwards [eventually_ge_atTop (u k)] with n hn
+    by_contra! hk
+    exact (not_lt_of_ge (hu.monotone (Nat.succ_le_of_lt hk) |>.trans hn)) (hupper n)
+  let lo (n : ℕ) := u (index n)
+  let hi (n : ℕ) := u (index n + 1)
+  have hbracket : ∀ᶠ n in atTop, 0 < lo n ∧ lo n ≤ n ∧ n ≤ hi n := by
+    filter_upwards [eventually_ge_atTop (u 0), tendsto_atTop.1 hindex 1] with n hn hk
+    exact ⟨Nat.zero_lt_one.trans_le (hk.trans (hu.id_le _)), hlower n hn, (hupper n).le⟩
+  have hright : Tendsto (fun n => (hi n : ℝ) / (lo n : ℝ)) atTop (nhds 1) :=
+    hratio.comp hindex
+  have hleft : Tendsto (fun n => (lo n : ℝ) / (hi n : ℝ)) atTop (nhds 1) := by
+    simpa only [inv_div, inv_one] using hright.inv₀ one_ne_zero
+  refine tendsto_normalized_of_brackets lo hi hbracket (hvalue.comp hindex)
+    (hvalue.comp ((tendsto_add_atTop_nat 1).comp hindex)) ?_ ?_
+  · refine hleft.squeeze' tendsto_const_nhds ?_ ?_
+    · filter_upwards [hbracket] with n h
+      have hn : (0 : ℝ) < (n : ℝ) := Nat.cast_pos.mpr (h.1.trans_le h.2.1)
+      exact div_le_div_of_nonneg_left (Nat.cast_nonneg _) hn (Nat.cast_le.mpr h.2.2)
+    · filter_upwards [hbracket] with n h
+      exact (div_le_one (Nat.cast_pos.mpr (h.1.trans_le h.2.1))).2 (Nat.cast_le.mpr h.2.1)
+  · refine tendsto_const_nhds.squeeze' hright ?_ ?_
+    · filter_upwards [hbracket] with n h
+      exact (one_le_div (Nat.cast_pos.mpr (h.1.trans_le h.2.1))).2 (Nat.cast_le.mpr h.2.2)
+    · filter_upwards [hbracket] with n h
+      exact div_le_div_of_nonneg_left (Nat.cast_nonneg _) (Nat.cast_pos.mpr h.1)
+        (Nat.cast_le.mpr h.2.1)
+
 end Ivanisvili
