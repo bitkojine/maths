@@ -1,4 +1,5 @@
 import Mathlib.Algebra.BigOperators.Fin
+import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
 import Mathlib.Data.Fin.Tuple.Basic
 import Mathlib.Data.Finset.Lattice.Fold
@@ -132,6 +133,74 @@ private theorem normalized_rescale (m n : ℕ) (hm : 0 < m) :
   have hm' : (0 : ℝ) < (m : ℝ) := Nat.cast_pos.mpr hm
   rw [normalized, Real.div_rpow hm'.le (Nat.cast_nonneg n), ← mul_div_assoc,
     div_mul_cancel₀ _ (ne_of_gt (Real.rpow_pos_of_pos hm' _))]
+
+private theorem minimum_le_sq (n : ℕ) : minimum n ≤ (n : ℝ) ^ (2 : ℕ) := by
+  induction n with
+  | zero => simp [minimum, worst, score]
+  | succ n ih =>
+    push_cast
+    linarith [minimum_succ_le n, ih, Nat.cast_nonneg (α := ℝ) n]
+
+/-- Both upward and downward one-step changes vanish at infinity. -/
+theorem tendsto_abs_normalized_step :
+    Tendsto (fun n => |normalized (n + 1) - normalized n|) atTop (nhds 0) := by
+  have upper (n : ℕ) (hn : 0 < n) :
+      |normalized (n + 1) - normalized n| ≤ 2 * (n : ℝ) ^ (-(1 / 2) : ℝ) := by
+    have hpos : 0 < (n : ℝ) := Nat.cast_pos.mpr hn
+    have hnext : (0 : ℝ) < ((n + 1 : ℕ) : ℝ) := Nat.cast_pos.mpr n.succ_pos
+    have hle : (n : ℝ) ≤ ((n + 1 : ℕ) : ℝ) := Nat.cast_le.mpr n.le_succ
+    have hpow : (n : ℝ) ^ (3 / 2 : ℝ) ≤ ((n + 1 : ℕ) : ℝ) ^ (3 / 2 : ℝ) :=
+      Real.rpow_le_rpow hpos.le hle (by norm_num)
+    have hr : (n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ) = (n : ℝ) ^ (-(1 / 2) : ℝ) := by
+      rw [show (-(1 / 2) : ℝ) = 1 - 3 / 2 by norm_num, Real.rpow_sub hpos, Real.rpow_one]
+    have hnonneg : 0 ≤ normalized n :=
+      div_nonneg (minimum_nonneg n) (Real.rpow_nonneg hpos.le _)
+    let r : ℝ := (n : ℝ) / ((n + 1 : ℕ) : ℝ)
+    have hrpos : 0 < r := div_pos hpos hnext
+    have hrle : r ≤ 1 := (div_le_one hnext).2 hle
+    have hrpow : r ^ (2 : ℕ) ≤ r ^ (3 / 2 : ℝ) := by
+      rw [← Real.rpow_natCast]
+      exact Real.rpow_le_rpow_of_exponent_ge hrpos hrle (by norm_num)
+    have hdown : normalized n * r ^ (2 : ℕ) ≤ normalized (n + 1) := by
+      calc
+        _ ≤ normalized n * r ^ (3 / 2 : ℝ) := mul_le_mul_of_nonneg_left hrpow hnonneg
+        _ = minimum n / ((n + 1 : ℕ) : ℝ) ^ (3 / 2 : ℝ) := normalized_rescale n (n + 1) hn
+        _ ≤ _ := div_le_div_of_nonneg_right (minimum_monotone n.le_succ)
+          (Real.rpow_nonneg hnext.le _)
+    have hgap : 1 - r ^ (2 : ℕ) ≤ 2 / (n : ℝ) := by
+      calc
+        _ = (1 - r) * (1 + r) := by ring
+        _ ≤ (1 - r) * 2 := mul_le_mul_of_nonneg_left (by linarith) (sub_nonneg.mpr hrle)
+        _ = 2 / ((n + 1 : ℕ) : ℝ) := by
+          dsimp [r]
+          push_cast
+          field_simp
+        _ ≤ _ := div_le_div_of_nonneg_left (by norm_num) hpos hle
+    refine abs_le.mpr ⟨?_, ?_⟩
+    · have hd : normalized n - normalized (n + 1) ≤ 2 * (n : ℝ) ^ (-(1 / 2) : ℝ) := by
+        calc
+          _ ≤ normalized n * (1 - r ^ (2 : ℕ)) := by linarith
+          _ ≤ normalized n * (2 / (n : ℝ)) := mul_le_mul_of_nonneg_left hgap hnonneg
+          _ ≤ ((n : ℝ) ^ (2 : ℕ) / (n : ℝ) ^ (3 / 2 : ℝ)) * (2 / (n : ℝ)) :=
+            mul_le_mul_of_nonneg_right
+              (div_le_div_of_nonneg_right (minimum_le_sq n) (Real.rpow_nonneg hpos.le _))
+              (div_nonneg (by norm_num) hpos.le)
+          _ = _ := by
+            rw [← hr]
+            field_simp [hpos.ne', (Real.rpow_pos_of_pos hpos (3 / 2 : ℝ)).ne']
+            ring
+      linarith
+    · have hstep := normalized_succ_le n hn
+      have hsmall := div_le_div_of_nonneg_left hpos.le (Real.rpow_pos_of_pos hpos _) hpow
+      rw [hr] at hsmall
+      linarith [Real.rpow_nonneg hpos.le (-(1 / 2) : ℝ)]
+  have hlim : Tendsto (fun n : ℕ => 2 * (n : ℝ) ^ (-(1 / 2) : ℝ)) atTop (nhds 0) := by
+    simpa only [mul_zero] using
+      (tendsto_rpow_neg_atTop (by norm_num : (0 : ℝ) < 1 / 2)).comp
+        tendsto_natCast_atTop_atTop |>.const_mul (2 : ℝ)
+  exact tendsto_const_nhds.squeeze' hlim
+    (Eventually.of_forall (fun _ => abs_nonneg _))
+    (by filter_upwards [eventually_ge_atTop (1 : ℕ)] with n hn; exact upper n hn)
 
 /-- Convergent normalized values at asymptotically adjacent bracketing sizes
 imply convergence of the full sequence. -/
