@@ -272,4 +272,65 @@ theorem tendsto_normalized_of_subsequence (u : ℕ → ℕ) (hu : StrictMono u) 
       exact div_le_div_of_nonneg_left (Nat.cast_nonneg _) (Nat.cast_pos.mpr h.1)
         (Nat.cast_le.mpr h.2.1)
 
+private theorem cluster_of_crossings (f : ℕ → ℝ) (c : ℝ)
+    (hstep : Tendsto (fun n => |f (n + 1) - f n|) atTop (nhds 0))
+    (hbelow : ∃ᶠ n in atTop, f n < c)
+    (habove : ∃ᶠ n in atTop, c < f n) :
+    MapClusterPt c atTop f := by
+  rw [Metric.nhds_basis_ball.mapClusterPt_iff_frequently]
+  intro ε hε
+  obtain ⟨Nstep, hNstep⟩ := eventually_atTop.1 (hstep.eventually (Iio_mem_nhds hε))
+  refine frequently_atTop.2 (fun N => ?_)
+  obtain ⟨n, hn, hfn⟩ := frequently_atTop.1 hbelow (max N Nstep)
+  have hnN := (le_max_left N Nstep).trans hn
+  have hnstep := (le_max_right N Nstep).trans hn
+  have hex : ∃ m, n ≤ m ∧ c ≤ f m := by
+    obtain ⟨m, hm, hfm⟩ := frequently_atTop.1 habove n
+    exact ⟨m, hm, hfm.le⟩
+  let m := Nat.find hex
+  have hm : n ≤ m ∧ c ≤ f m := Nat.find_spec hex
+  have hnm : n < m :=
+    lt_of_le_of_ne hm.1 (fun h => (not_le_of_gt hfn) (by simpa only [← h] using hm.2))
+  have hprev : m - 1 < m := by omega
+  have hsucc : m - 1 + 1 = m := by omega
+  have hnprev : n ≤ m - 1 := by omega
+  have hbefore : f (m - 1) < c := by
+    have hnot := Nat.find_min hex hprev
+    exact lt_of_not_ge (fun h => hnot ⟨hnprev, h⟩)
+  have hsmall := hNstep (m - 1) (hnstep.trans hnprev)
+  change |f (m - 1 + 1) - f (m - 1)| < ε at hsmall
+  rw [hsucc] at hsmall
+  refine ⟨m, hnN.trans hm.1, ?_⟩
+  rw [Metric.mem_ball, Real.dist_eq, abs_of_nonneg (sub_nonneg.mpr hm.2)]
+  linarith [le_abs_self (f m - f (m - 1))]
+
+/-- Every intermediate value between two cluster points is a cluster point. -/
+theorem normalized_cluster_points_ordConnected :
+    Set.OrdConnected {c | MapClusterPt c atTop normalized} := by
+  constructor
+  intro a ha b hb c hc
+  change MapClusterPt a atTop normalized at ha
+  change MapClusterPt b atTop normalized at hb
+  change MapClusterPt c atTop normalized
+  obtain ⟨hac, hcb⟩ := hc
+  rcases hac.eq_or_lt with rfl | hac
+  · exact ha
+  rcases hcb.eq_or_lt with rfl | hcb
+  · exact hb
+  exact cluster_of_crossings normalized c tendsto_abs_normalized_step
+    (mapClusterPt_iff_frequently.mp ha _ (Iio_mem_nhds hac))
+    (mapClusterPt_iff_frequently.mp hb _ (Ioi_mem_nhds hcb))
+
+/-- Between any two subsequential limits, each real value is a subsequential limit. -/
+theorem exists_subsequence_of_between_limits {u v : ℕ → ℕ} (hu : StrictMono u)
+    (hv : StrictMono v) {a b c : ℝ}
+    (ha : Tendsto (normalized ∘ u) atTop (nhds a))
+    (hb : Tendsto (normalized ∘ v) atTop (nhds b)) (hac : a ≤ c) (hcb : c ≤ b) :
+    ∃ w : ℕ → ℕ, StrictMono w ∧ Tendsto (normalized ∘ w) atTop (nhds c) := by
+  have hA := MapClusterPt.of_comp hu.tendsto_atTop ha.mapClusterPt
+  have hB := MapClusterPt.of_comp hv.tendsto_atTop hb.mapClusterPt
+  have hC : MapClusterPt c atTop normalized :=
+    normalized_cluster_points_ordConnected.out' hA hB ⟨hac, hcb⟩
+  exact TopologicalSpace.FirstCountableTopology.tendsto_subseq hC
+
 end Ivanisvili
