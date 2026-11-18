@@ -15,3 +15,4 @@ These notes record AI-generated partial results. The convergence question remain
 
 - [Proofs of the asymptotic bounds](bounds.md)
 - [Convergence criterion](convergence.md)
+- [Exact limit for the semidefinite relaxation](relaxation.md)
