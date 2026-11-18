@@ -1,5 +1,5 @@
 import Mathlib.Algebra.BigOperators.Fin
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
 import Mathlib.Data.Fin.Tuple.Basic
 import Mathlib.Data.Finset.Lattice.Fold
 import Mathlib.Data.Fintype.Basic
@@ -70,5 +70,37 @@ theorem minimum_monotone : Monotone minimum := by
   exact le_trans
     (Finset.inf'_le (fun b : Signing n => worst b) (Finset.mem_univ (restrict a)))
     (worst_restrict a)
+
+private theorem normalized_rescale (m n : ℕ) (hm : 0 < m) :
+    normalized m * ((m : ℝ) / (n : ℝ)) ^ (3 / 2 : ℝ) =
+      minimum m / (n : ℝ) ^ (3 / 2 : ℝ) := by
+  have hm' : (0 : ℝ) < (m : ℝ) := Nat.cast_pos.mpr hm
+  rw [normalized, Real.div_rpow hm'.le (Nat.cast_nonneg n), ← mul_div_assoc,
+    div_mul_cancel₀ _ (ne_of_gt (Real.rpow_pos_of_pos hm' _))]
+
+/-- Convergent normalized values at asymptotically adjacent bracketing sizes
+imply convergence of the full sequence. -/
+theorem tendsto_normalized_of_brackets (lo hi : ℕ → ℕ) {L : ℝ}
+    (hbracket : ∀ᶠ n in atTop, 0 < lo n ∧ lo n ≤ n ∧ n ≤ hi n)
+    (hlo : Tendsto (fun n => normalized (lo n)) atTop (nhds L))
+    (hhi : Tendsto (fun n => normalized (hi n)) atTop (nhds L))
+    (hloRatio : Tendsto (fun n => (lo n : ℝ) / (n : ℝ)) atTop (nhds 1))
+    (hhiRatio : Tendsto (fun n => (hi n : ℝ) / (n : ℝ)) atTop (nhds 1)) :
+    Tendsto normalized atTop (nhds L) := by
+  have hloPow := hloRatio.rpow_const (p := (3 / 2 : ℝ)) (Or.inl one_ne_zero)
+  have hhiPow := hhiRatio.rpow_const (p := (3 / 2 : ℝ)) (Or.inl one_ne_zero)
+  simp only [Real.one_rpow] at hloPow hhiPow
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le'
+    (by simpa only [mul_one] using hlo.mul hloPow)
+    (by simpa only [mul_one] using hhi.mul hhiPow) ?_ ?_
+  · filter_upwards [hbracket] with n h
+    rw [normalized_rescale (lo n) n h.1]
+    exact div_le_div_of_nonneg_right (minimum_monotone h.2.1)
+      (Real.rpow_nonneg (Nat.cast_nonneg n) _)
+  · filter_upwards [hbracket] with n h
+    have hhi_pos : 0 < hi n := h.1.trans_le (h.2.1.trans h.2.2)
+    rw [normalized_rescale (hi n) n hhi_pos]
+    exact div_le_div_of_nonneg_right (minimum_monotone h.2.2)
+      (Real.rpow_nonneg (Nat.cast_nonneg n) _)
 
 end Ivanisvili

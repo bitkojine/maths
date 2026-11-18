@@ -21,4 +21,4 @@ These notes record AI-generated partial results. The convergence question remain
 
 [Ivanisvili.lean](Ivanisvili.lean) defines the exact normalized sequence and the
 proposition `Ivanisvili.LimitExists`. It also proves that the unnormalized
-minimum is nondecreasing. Run `lake build` with Elan installed to check it.
+minimum is nondecreasing and gives a convergence criterion using bracketing sizes. Run `lake build` with Elan installed to check it.
