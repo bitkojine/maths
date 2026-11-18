@@ -1,6 +1,6 @@
 # A Hadamard tensor lift can worsen an optimal signing
 
-Let $A$ be a symmetric sign matrix off the diagonal, with zero diagonal. A candidate for enlarging its signing is to fill the diagonal with signs, tensor with a symmetric Hadamard matrix, and read the signs above the new diagonal. This operation can increase the normalized maximum even when the starting signing is optimal and its diagonal signs can be chosen freely.
+Let $A$ be a symmetric sign matrix off the diagonal, with zero diagonal. A candidate for enlarging its signing is to replace each edge sign by a signed copy of a symmetric Hadamard matrix and choose the signs inside each vertex block. This operation can increase the normalized maximum even when the starting signing is optimal and the signs inside the vertex blocks can be chosen freely.
 
 ## An optimal signing on six vertices
 
@@ -33,20 +33,24 @@ z_-^\top H z_-=-h^{3/2},\qquad
 z_+^\top H z_-=0.
 ```
 
-Choose arbitrary signs $d_i$ for the diagonal matrix $D$ and let $G=(A+D)\otimes H$. The score of the enlarged signing at $y$ is $y^\top G y/2$, since the sum of the diagonal entries of $G$ is zero and every entry of $y$ has square one.
+Replace each base vertex by a block of size $h$. Between distinct blocks $i,j$, use the sign matrix $a_{ij}H$. Within each block $i$, choose any signing, with quadratic score $w_i(z)$ at spin assignment $z$.
 
 Partition the six base vertices into two triples. The product of the three edge signs on a triple is its triangle sign. Complementary triples have opposite triangle signs. Indeed, the triple containing $\star$ uses two cycle vertices. If those vertices are adjacent, the triple has one negative edge and its complement has two. If they are nonadjacent, the triple has none and its complement has one.
 
-There are ten positive triangles, and each vertex is in five of them. The vertex $\star$ is in five because there are five nonadjacent pairs on the cycle. The other five vertices are included equally often by rotational symmetry and account for the remaining 25 incidences. Thus there is a positive triangle $S$, with negative complement $T$, for which $\sum_{i\in S}d_i-\sum_{i\in T}d_i\ge0$. The difference has average zero over the ten positive triangles.
+There are ten positive triangles, and each vertex is in five of them. The vertex $\star$ is in five because there are five nonadjacent pairs on the cycle. The other five vertices are included equally often by rotational symmetry and account for the remaining 25 incidences.
 
-Choose base signs $u_i$ so that $a_{ij}u_i u_j=+1$ on $S$ and $a_{ij}u_i u_j=-1$ on $T$. This is possible independently on the two triples. Fix one vertex sign and use its two incident edges to determine the other signs. The remaining edge then has the desired sign because the triangle sign is preserved.
+For each positive triangle $S$ with negative complement $T$, choose base signs $u_i$ so that $a_{ij}u_i u_j=+1$ on $S$ and $a_{ij}u_i u_j=-1$ on $T$. This is possible independently on the two triples. Fix one vertex sign and use its two incident edges to determine the other signs. The remaining edge then has the desired sign because the triangle sign is preserved.
 
-In the block of $y$ indexed by vertex $i$, use $u_i z_+$ for $i\in S$ and $u_i z_-$ for $i\in T$. All cross terms between $S$ and $T$ vanish. The two triples each contribute three terms of $h^{3/2}$ to the score. The remaining term is the diagonal contribution from $D$, so the score is
+First, use $u_i z_+$ in each block $i\in S$ and $u_i z_-$ in each block $i\in T$. All cross terms between $S$ and $T$ vanish. The two triples each contribute three terms of $h^{3/2}$ to the score. Using the same $u_i$ and exchanging $z_+$ and $z_-$ reverses the contribution between distinct blocks. The two full scores are
 
 ```math
-\frac12 y^\top G y
-= h^{3/2}\left(6+\frac12\left(\sum_{i\in S}d_i-\sum_{i\in T}d_i\right)\right)
-\ge6h^{3/2}.
+P(S)=6h^{3/2}+\sum_{i\in S}w_i(z_+)+\sum_{i\in T}w_i(z_-),
 ```
 
-At scale $6h$, the normalized maximum of this lift is therefore at least $6/6^{3/2}$, whereas the optimal base signing has normalized maximum $5/6^{3/2}$. This rules out a general nonincreasing bound for these tensor lifts, even with optimized base diagonal signs. It does not bound the minimum over other signings at size $6h$.
+```math
+N(S)=-6h^{3/2}+\sum_{i\in S}w_i(z_-)+\sum_{i\in T}w_i(z_+).
+```
+
+The factors $u_i$ do not affect $w_i$, since each term in a block uses two spins. Each vertex appears equally often in $S$ and $T$ as $S$ ranges over positive triangles, so the two scores have identical average contributions from inside the blocks. Averaging $P(S)-N(S)$ gives $12h^{3/2}$. Some pair therefore differs by at least $12h^{3/2}$, and one of its scores has absolute value at least $6h^{3/2}$.
+
+At scale $6h$, the normalized maximum of this lift is therefore at least $6/6^{3/2}$, whereas the optimal base signing has normalized maximum $5/6^{3/2}$. This rules out a general nonincreasing bound for these tensor lifts even when all the signs inside vertex blocks are chosen freely. It does not bound the minimum over other signings at size $6h$.
