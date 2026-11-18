@@ -2,12 +2,12 @@
 
 Write $M_n$ for the minimum in the [problem statement](README.md). The following estimates bound the normalized sequence:
 
-$$
+```math
 \frac{2}{3\sqrt{3}}\sqrt{\frac{2}{\pi}}
 \le \liminf_{n\to\infty}\frac{M_n}{n^{3/2}}
 \le \limsup_{n\to\infty}\frac{M_n}{n^{3/2}}
 \le \frac12.
-$$
+```
 
 ## Lower bound
 
@@ -21,10 +21,10 @@ Take $k=\lfloor n/3\rfloor$. The central limit theorem and the bounded second mo
 
 For each prime $q\equiv1\pmod4$, a symmetric Paley conference matrix of order $q+1$ has zero diagonal, signs off the diagonal, and operator norm $\sqrt q$. Its $n\times n$ principal submatrix $A$, for $n\le q+1$, has operator norm at most $\sqrt q$. Taking the entries above the diagonal for the coefficients gives, for every sign vector $x$,
 
-$$
+```math
 \left|\sum_{i<j} a_{ij}x_ix_j\right|
 = \frac12 |x^\top A x|
 \le \frac{n\sqrt q}{2}.
-$$
+```
 
 The prime number theorem in arithmetic progressions lets us choose such primes with $q+1\ge n$ and $q/n\to1$. This proves the upper bound for the entire sequence.

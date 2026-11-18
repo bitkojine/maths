@@ -4,10 +4,10 @@ Let $M_n$ be the unnormalized minimum in the [problem statement](README.md). For
 
 Suppose there is an increasing sequence $n_j$ with $n_{j+1}/n_j\to 1$ and $M_{n_j}/n_j^{3/2}\to L$. For $n_j\le n\le n_{j+1}$, monotonicity gives
 
-$$
+```math
 \frac{M_{n_j}}{n_{j+1}^{3/2}}\le
 \frac{M_n}{n^{3/2}}\le
 \frac{M_{n_{j+1}}}{n_j^{3/2}}.
-$$
+```
 
 Both outer terms converge to $L$, so the full sequence converges to $L$. In particular, it would suffice to find signings at such closely spaced sizes with normalized maxima approaching the liminf. The [conference matrix construction](bounds.md#upper-bound) supplies an upper bound but does not identify the liminf.
