@@ -14,3 +14,4 @@ These notes record AI-generated partial results. The convergence question remain
 - [AI challenge on X](https://x.com/PI010101/status/2081070728422752329)
 
 - [Proofs of the asymptotic bounds](bounds.md)
+- [Convergence criterion](convergence.md)
