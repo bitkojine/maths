@@ -71,6 +71,61 @@ theorem minimum_monotone : Monotone minimum := by
     (Finset.inf'_le (fun b : Signing n => worst b) (Finset.mem_univ (restrict a)))
     (worst_restrict a)
 
+private theorem abs_sign (b : Bool) : |sign b| = 1 := by
+  cases b <;> simp [sign]
+
+/-- Adding one vertex costs at most the number of new edges. -/
+theorem minimum_succ_le (n : ℕ) : minimum (n + 1) ≤ minimum n + n := by
+  obtain ⟨a, _, ha⟩ := Finset.exists_mem_eq_inf'
+    (s := Finset.univ) Finset.univ_nonempty (fun a : Signing n => worst a)
+  change minimum n = worst a at ha
+  let extended : Signing (n + 1) := Fin.snoc (fun i => Fin.snoc (a i) true) (fun _ => true)
+  have hrestrict : restrict extended = a := by
+    funext i j
+    simp [restrict, extended]
+  calc
+    minimum (n + 1) ≤ worst extended :=
+      Finset.inf'_le (fun a : Signing (n + 1) => worst a) (Finset.mem_univ extended)
+    _ ≤ minimum n + n := by
+      apply Finset.sup'_le
+      intro x _
+      let term (i : Fin n) := sign (extended i.castSucc (Fin.last n)) * sign (Fin.init x i)
+      have habs : |∑ i : Fin n, term i| ≤ (n : ℝ) := by
+        calc
+          |∑ i : Fin n, term i| ≤ ∑ i : Fin n, |term i| := Finset.abs_sum_le_sum_abs _ _
+          _ = n := by simp [term, abs_mul, abs_sign]
+      have hscore : |score a (Fin.init x)| ≤ worst a :=
+        Finset.le_sup' (fun y : Spins n => |score a y|) (Finset.mem_univ _)
+      rw [← Fin.snoc_init_self x, score_snoc, hrestrict, ha]
+      calc
+        _ ≤ |score a (Fin.init x)| +
+              |(∑ i : Fin n, term i) * sign (x (Fin.last n))| := abs_add_le _ _
+        _ ≤ worst a + n := by
+          rw [abs_mul, abs_sign, mul_one]
+          exact add_le_add hscore habs
+
+theorem minimum_nonneg (n : ℕ) : 0 ≤ minimum n := by
+  apply Finset.le_inf'
+  intro a _
+  let x : Spins n := fun _ => true
+  exact (abs_nonneg (score a x)).trans
+    (Finset.le_sup' (fun y : Spins n => |score a y|) (Finset.mem_univ x))
+
+/-- One-step upward variation of the normalized values. -/
+theorem normalized_succ_le (n : ℕ) (hn : 0 < n) :
+    normalized (n + 1) ≤ normalized n + (n : ℝ) / ((n + 1 : ℕ) : ℝ) ^ (3 / 2 : ℝ) := by
+  have hpos : 0 < (n : ℝ) ^ (3 / 2 : ℝ) :=
+    Real.rpow_pos_of_pos (Nat.cast_pos.mpr hn) _
+  have hpow : (n : ℝ) ^ (3 / 2 : ℝ) ≤ ((n + 1 : ℕ) : ℝ) ^ (3 / 2 : ℝ) :=
+    Real.rpow_le_rpow (Nat.cast_nonneg n) (Nat.cast_le.mpr (Nat.le_succ n)) (by norm_num)
+  unfold normalized
+  calc
+    _ ≤ (minimum n + n) / ((n + 1 : ℕ) : ℝ) ^ (3 / 2 : ℝ) :=
+      div_le_div_of_nonneg_right (minimum_succ_le n) ((le_of_lt hpos).trans hpow)
+    _ ≤ _ := by
+      rw [add_div]
+      exact add_le_add_right (div_le_div_of_nonneg_left (minimum_nonneg n) hpos hpow) _
+
 private theorem normalized_rescale (m n : ℕ) (hm : 0 < m) :
     normalized m * ((m : ℝ) / (n : ℝ)) ^ (3 / 2 : ℝ) =
       minimum m / (n : ℝ) ^ (3 / 2 : ℝ) := by
