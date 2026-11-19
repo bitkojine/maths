@@ -25,8 +25,13 @@ minimum is nondecreasing. It also proves convergence from any convergent
 subsequence whose successive size ratios tend to one. Run `lake build` with Elan installed to check it.
 - [Obstruction to scaling an optimal signing by Hadamard tensors](tensor-obstruction.md)
 - [Sharp small-block asymptotics for isolated cross terms](block-extension.md)
+- [Size comparisons through exponential averages](soft-maximum.md)
 
 [Hadamard.lean](Ivanisvili/Hadamard.lean) constructs the Sylvester signings
 and uses them to prove boundedness of the normalized sequence. It also proves
 that a subsequential limit exists and that convergence is equivalent to
 uniqueness of the subsequential limit.
+
+[SoftMaximum.lean](Ivanisvili/SoftMaximum.lean) proves the uniform error bound
+for a smooth maximum and the reduction to convergence at arbitrarily large
+fixed averaging parameters.
