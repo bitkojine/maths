@@ -24,6 +24,7 @@ proposition `Ivanisvili.LimitExists`. It also proves that the unnormalized
 minimum is nondecreasing. It also proves convergence from any convergent
 subsequence whose successive size ratios tend to one. Run `lake build` with Elan installed to check it.
 - [Obstruction to scaling an optimal signing by Hadamard tensors](tensor-obstruction.md)
+- [Sharp small-block asymptotics for isolated cross terms](block-extension.md)
 
 [Hadamard.lean](Ivanisvili/Hadamard.lean) constructs the Sylvester signings
 and uses them to prove boundedness of the normalized sequence. It also proves
